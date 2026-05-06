@@ -129,3 +129,5 @@ lexer.input(data)
 
 for tok in lexer:
     print(tok)
+
+input("Pressione Enter para sair...")
