@@ -1,11 +1,12 @@
 import ply.lex as lex
 
 # =========================
-# Palavras reservadas
+# PALAVRAS RESERVADAS
 # =========================
-reserved = {
+
+reservadas = {
     'elgio': 'ELGIO',
-    'numero': 'NUMERO',
+    'numero': 'NUMERO_TIPO',
     'NADA': 'NADA',
     'NEG': 'NEG',
     'EXP': 'EXP',
@@ -21,113 +22,140 @@ reserved = {
     'igual': 'IGUAL',
     'diferente': 'DIFERENTE',
     'migual': 'MIGUAL',
-    'Migual': 'MIGUAL'
+    'Migual': 'MIGUAL2'
 }
 
 # =========================
-# Tokens
+# TOKENS
 # =========================
+
 tokens = [
-    'ID',
-    'FUNC_ID',
-    'NUM',
-    'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD',
-    'EQUAL',
-    'LPAREN', 'RPAREN',
-    'DOT'
-] + list(reserved.values())
+    'IDENTIFICADOR',
+    'FUNCAO',
+    'NUMERO',
+
+    'IGUAL_OP',
+    'MOD',
+    'MAIS',
+    'MENOS',
+    'DIV',
+    'MULT',
+
+    'LPAREN',
+    'RPAREN',
+    'PONTO',
+    'VIRGULA'
+] + list(reservadas.values())
 
 # =========================
-# Operadores e símbolos
+# OPERADORES E SIMBOLOS
 # =========================
-t_PLUS   = r'\+'
-t_MINUS  = r'-'
-t_TIMES  = r'x'
-t_DIVIDE = r'/'
-t_MOD    = r'%'
-t_EQUAL  = r'='
+
+t_IGUAL_OP = r'='
+t_MOD = r'%'
+t_MAIS = r'\+'
+t_MENOS = r'-'
+t_DIV = r'/'
+t_MULT = r'x'
+
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
-t_DOT    = r'\.'
+t_PONTO = r'\.'
+t_VIRGULA = r','
 
 # =========================
-# Ignorar espaços
+# IGNORAR ESPAÇOS
 # =========================
+
 t_ignore = ' \t'
 
 # =========================
-# Comentários (* até fim da linha)
+# COMENTÁRIOS
 # =========================
-def t_COMMENT(t):
+
+def t_COMENTARIO(t):
     r'\*.*'
     pass
 
 # =========================
-# Funções (ANTES do ID!)
+# IDENTIFICADORES E RESERVADAS
 # =========================
-def t_FUNC_ID(t):
-    r'_[A-Z][a-zA-Z]{2,}[a-z]'
-    return t
 
-# =========================
-# Identificadores e reservadas
-# =========================
-def t_ID(t):
-    r'[A-Z][a-zA-Z]{2,}[a-z]'
+def t_IDENTIFICADOR(t):
+    r'[A-Za-z_][A-Za-z_]*'
+
+    # Reservadas
+    if t.value in reservadas:
+        t.type = reservadas[t.value]
+        return t
+
+    # Funções
+    if t.value.startswith('_'):
+        if len(t.value) >= 5 and t.value[1].isupper() and t.value[-1].islower() and t.value[1:].isalpha():
+            t.type = 'FUNCAO'
+            return t
+
+    # Identificadores
+    if len(t.value) >= 4 and t.value[0].isupper() and t.value[-1].islower() and t.value.isalpha():
+        t.type = 'IDENTIFICADOR'
+        return t
+
+    print(f"Erro léxico: token inválido '{t.value}'")
     
-    # Se for palavra reservada, troca o tipo
-    t.type = reserved.get(t.value, 'ID')
-    return t
+# =========================
+# NÚMEROS
+# =========================
 
-# =========================
-# Número válido
-# =========================
-def t_NUM(t):
+def t_NUMERO(t):
     r'[1-9][0-9]*'
-    t.value = int(t.value)
     return t
 
 # =========================
-# Detectar número inválido (ex: 034)
+# QUEBRA DE LINHA
 # =========================
-def t_NUM_INVALID(t):
-    r'0[0-9]+'
-    print(f"Erro léxico: número inválido '{t.value}' (não pode começar com 0)")
 
-# =========================
-# Quebra de linha
-# =========================
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
 # =========================
-# Erro geral
+# ERROS
 # =========================
+
 def t_error(t):
     print(f"Erro léxico: caractere inválido '{t.value[0]}'")
     t.lexer.skip(1)
 
 # =========================
-# Criar lexer
+# BUILD DO LEXER
 # =========================
+
 lexer = lex.lex()
 
 # =========================
 # TESTE
 # =========================
-data = '''
-* Exemplo Elgol
-numero Teste .
-Teste = 34 .
-NEG Teste .
-Teste = 034 .
-_TesteFunc (Teste) .
-'''
 
-lexer.input(data)
+codigo = """
+* Linguagem Elgol
 
-for tok in lexer:
+numero TestÊ .
+
+Lixo = 34 .
+
+NEG Lixo .
+
+numero _Soma (numero Numm, numero Doiss) .
+
+Teste = 3 EXP 4 .
+"""
+
+lexer.input(codigo)
+
+while True:
+    tok = lexer.token()
+
+    if not tok:
+        break
+
     print(tok)
-
-input("Pressione Enter para sair...")
