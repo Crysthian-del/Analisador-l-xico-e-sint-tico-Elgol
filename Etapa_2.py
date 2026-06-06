@@ -159,6 +159,11 @@ def p_comando_atribuicao(p):
     comando : IDENTIFICADOR IGUAL_OP valor PONTO
     '''
 
+def p_comando_neg(p):
+    '''
+    comando : NEG IDENTIFICADOR PONTO
+    '''
+
 def p_valor_numero(p):
     '''
     valor : NUMERO
@@ -199,7 +204,7 @@ parser = yacc.yacc()
 codigo = """
 numero Teste .
 
-Teste = 3 EXP 4 .
+NEG Teste .
 """
 
 resultado = parser.parse(codigo)
