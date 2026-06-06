@@ -174,6 +174,16 @@ def p_valor_nada(p):
     valor : NADA
     '''
 
+def p_valor_expressao(p):
+    '''
+    valor : valor MAIS valor
+          | valor MENOS valor
+          | valor MULT valor
+          | valor DIV valor
+          | valor MOD valor
+          | valor EXP valor
+    '''
+
 def p_error(p):
     if p:
         print(f"Erro sintático próximo de '{p.value}'")
@@ -189,9 +199,7 @@ parser = yacc.yacc()
 codigo = """
 numero Teste .
 
-Lixo = 34 .
-
-Teste = NADA .
+Teste = 3 EXP 4 .
 """
 
 resultado = parser.parse(codigo)
