@@ -87,13 +87,18 @@ def t_FUNCAO(t):
     return t
 
 def t_IDENTIFICADOR(t):
-    r'[A-Z][a-zA-Z]{2,}[a-z]'
+    r'[A-Za-z]+'
 
-    # Reservadas
+    # Palavras reservadas
     if t.value in reservadas:
         t.type = reservadas[t.value]
-        
-    return t
+        return t
+
+    # Identificadores válidos do Elgol
+    if len(t.value) >= 4 and t.value[0].isupper() and t.value[-1].islower():
+        return t
+
+    print(f"Erro léxico: token inválido '{t.value}'")
 
 def t_PALAVRA_INVALIDA(t):
     r'[A-Za-z_][A-Za-z0-9_]*'
