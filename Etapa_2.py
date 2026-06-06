@@ -1,3 +1,4 @@
+import ply.yacc as yacc
 import ply.lex as lex
 
 # =========================
@@ -81,25 +82,21 @@ def t_COMENTARIO(t):
 # IDENTIFICADORES E RESERVADAS
 # =========================
 
+def t_FUNCAO(t):
+    r'_[A-Z][a-zA-Z]{2,}[a-z]'
+    return t
+
 def t_IDENTIFICADOR(t):
-    r'[A-Za-z_][A-Za-z_]*'
+    r'[A-Z][a-zA-Z]{2,}[a-z]'
 
     # Reservadas
     if t.value in reservadas:
         t.type = reservadas[t.value]
-        return t
+        
+    return t
 
-    # Funções
-    if t.value.startswith('_'):
-        if len(t.value) >= 5 and t.value[1].isupper() and t.value[-1].islower() and t.value[1:].isalpha():
-            t.type = 'FUNCAO'
-            return t
-
-    # Identificadores
-    if len(t.value) >= 4 and t.value[0].isupper() and t.value[-1].islower() and t.value.isalpha():
-        t.type = 'IDENTIFICADOR'
-        return t
-
+def t_PALAVRA_INVALIDA(t):
+    r'[A-Za-z_][A-Za-z0-9_]*'
     print(f"Erro léxico: token inválido '{t.value}'")
     
 # =========================
@@ -133,29 +130,65 @@ def t_error(t):
 lexer = lex.lex()
 
 # =========================
+# REGRAS SINTÁTICAS
+# =========================
+
+def p_programa(p):
+    '''
+    programa : lista_comandos
+    '''
+
+def p_lista_comandos(p):
+    '''
+    lista_comandos : comando
+                   | comando lista_comandos
+    '''
+
+def p_comando_declaracao(p):
+    '''
+    comando : NUMERO_TIPO IDENTIFICADOR PONTO
+    '''
+
+def p_comando_atribuicao(p):
+    '''
+    comando : IDENTIFICADOR IGUAL_OP valor PONTO
+    '''
+
+def p_valor_numero(p):
+    '''
+    valor : NUMERO
+    '''
+
+def p_valor_identificador(p):
+    '''
+    valor : IDENTIFICADOR
+    '''
+
+def p_valor_nada(p):
+    '''
+    valor : NADA
+    '''
+
+def p_error(p):
+    if p:
+        print(f"Erro sintático próximo de '{p.value}'")
+    else:
+        print("Erro sintático no final do arquivo")
+
+parser = yacc.yacc()
+
+# =========================
 # TESTE
 # =========================
 
 codigo = """
-* Linguagem Elgol
-
-numero TestÊ .
+numero Teste .
 
 Lixo = 34 .
 
-NEG Lixo .
-
-numero _Soma (numero Numm, numero Doiss) .
-
-Teste = 3 EXP 4 .
+Teste = NADA .
 """
 
-lexer.input(codigo)
+resultado = parser.parse(codigo)
 
-while True:
-    tok = lexer.token()
-
-    if not tok:
-        break
-
-    print(tok)
+print("Análise sintática concluída.")
